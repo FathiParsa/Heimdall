@@ -1,0 +1,55 @@
+@page "/calendar"
+@using Radzen.Blazor
+@using System.Security.Claims
+@using OrgManager.Application.Features.Calendar.Commands.CreateEvent
+@inject IHttpClientFactory HttpClientFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<RadzenScheduler @ref="scheduler" style="height: 768px;" TItem="CalendarEventDto" Data="@events"
+    StartDate="@(DateTime.Today)" EndDate="@(DateTime.Today.AddMonths(1))"
+    Today="@(DateTime.Today)" Culture="fa-IR"
+    SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender>
+    <RadzenDayView />
+    <RadzenWeekView />
+    <RadzenMonthView />
+    <RadzenYearView />
+</RadzenScheduler>
+
+@code {
+    private RadzenScheduler<CalendarEventDto> scheduler;
+    private IList<CalendarEventDto> events = new List<CalendarEventDto>();
+
+    private async Task OnSlotSelect(SchedulerSlotSelectEventArgs args)
+    {
+        var command = new CreateEventCommand
+        {
+            StartTime = args.Start,
+            EndTime = args.End,
+            Title = "New Event",
+            Description = "New Event Description"
+        };
+
+        var client = HttpClientFactory.CreateClient("OrgManager.Api");
+        await client.PostAsJsonAsync("api/calendar/events", command);
+        await scheduler.Reload();
+    }
+
+    private async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<CalendarEventDto> args)
+    {
+        // Handle appointment select
+    }
+
+    private void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<CalendarEventDto> args)
+    {
+        // Handle appointment render
+    }
+
+    public class CalendarEventDto
+    {
+        public Guid Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+    }
+}

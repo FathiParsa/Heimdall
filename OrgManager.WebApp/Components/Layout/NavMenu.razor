@@ -1,0 +1,15 @@
+<MudNavMenu>
+    <MudNavLink Href="" Match="NavLinkMatch.All">صفحه اصلی</MudNavLink>
+    <MudNavLink Href="/register">ثبت نام</MudNavLink>
+    <MudNavLink Href="/login">ورود</MudNavLink>
+    <MudNavLink Href="/attendance">حضور و غیاب</MudNavLink>
+    <MudNavLink Href="/timelog">ثبت ساعات کاری</MudNavLink>
+    <MudNavLink Href="/chat">چت</MudNavLink>
+    <MudNavLink Href="/calendar">تقویم</MudNavLink>
+    <MudNavLink Href="/todolist">لیست کارها</MudNavLink>
+    <AuthorizeView Roles="Admin, SuperAdmin">
+        <MudNavLink Href="/usermanagement">مدیریت کاربران</MudNavLink>
+        <MudNavLink Href="/dashboard">داشبورد</MudNavLink>
+        <MudNavLink Href="/reports">گزارشات</MudNavLink>
+    </AuthorizeView>
+</MudNavMenu>

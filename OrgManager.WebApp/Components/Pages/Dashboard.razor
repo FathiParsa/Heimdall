@@ -1,0 +1,44 @@
+@page "/dashboard"
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Net.Http
+@using System.Net.Http.Json
+@inject IHttpClientFactory HttpClientFactory
+@attribute [Authorize]
+
+<AuthorizeView Roles="SuperAdmin">
+    <MudText Typo="Typo.h4" GutterBottom="true">داشبورد سوپر ادمین</MudText>
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6">تعداد کاربران</MudText>
+                <MudText Typo="Typo.h4">@userCount</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</AuthorizeView>
+
+<AuthorizeView Roles="Admin">
+    <MudText Typo="Typo.h4" GutterBottom="true">داشبورد ادمین</MudText>
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6">تعداد کاربران</MudText>
+                <MudText Typo="Typo.h4">@userCount</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</AuthorizeView>
+
+<AuthorizeView Roles="RegularUser">
+    <MudText Typo="Typo.h4" GutterBottom="true">داشبورد کاربر عادی</MudText>
+</AuthorizeView>
+
+@code {
+    private int userCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = HttpClientFactory.CreateClient("OrgManager.Api");
+        userCount = await client.GetFromJsonAsync<int>("api/dashboard/usercount");
+    }
+}

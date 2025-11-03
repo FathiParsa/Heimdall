@@ -1,0 +1,42 @@
+@page "/reports"
+@using System.Net.Http
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Authorization
+@using OrgManager.Application.Features.Reports.Queries.GetTimeLogReport
+@using OrgManager.WebApp.Services
+@attribute [Authorize(Roles = "Admin, SuperAdmin")]
+@inject IHttpClientFactory HttpClientFactory
+@inject ITimeService TimeService
+
+<MudText Typo="Typo.h4" GutterBottom="true">گزارشات</MudText>
+
+<MudPaper Class="pa-4">
+    <MudDateRangePicker @bind-DateRange="dateRange" Label="بازه زمانی" />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GenerateReport">تولید گزارش</MudButton>
+</MudPaper>
+
+<MudDataGrid T="TimeLogReportDto" Items="@report">
+    <Columns>
+        <PropertyColumn Property="x => x.Username" Title="نام کاربری" />
+        <PropertyColumn Property="x => TimeService.ToPersianDate(x.Date)" Title="تاریخ" />
+        <PropertyColumn Property="x => x.DurationInMinutes" Title="مدت زمان (دقیقه)" />
+        <PropertyColumn Property="x => x.Category" Title="دسته بندی" />
+        <PropertyColumn Property="x => x.Description" Title="توضیحات" />
+    </Columns>
+</MudDataGrid>
+
+@code {
+    private DateRange dateRange = new DateRange(DateTime.Today.AddDays(-7), DateTime.Today);
+    private List<TimeLogReportDto> report = new();
+
+    private async Task GenerateReport()
+    {
+        var client = HttpClientFactory.CreateClient("OrgManager.Api");
+        var url = $"api/reports/timelog?startDate={dateRange.Start:yyyy-MM-dd}&endDate={dateRange.End:yyyy-MM-dd}";
+        var response = await client.GetFromJsonAsync<List<TimeLogReportDto>>(url);
+        if (response != null)
+        {
+            report = response;
+        }
+    }
+}

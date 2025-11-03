@@ -1,0 +1,84 @@
+@page "/timelog"
+@using System.Net.Http
+@using System.Net.Http.Json
+@using System.Net.Http.Headers
+@using Microsoft.AspNetCore.Components.Authorization
+@using OrgManager.Application.Features.TimeLog.Commands.LogTime
+@using OrgManager.WebApp.Services
+@inject IHttpClientFactory HttpClientFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ITimeService TimeService
+
+<MudText Typo="Typo.h4" GutterBottom="true">ثبت ساعات کاری</MudText>
+
+<MudPaper Class="pa-4">
+    <MudForm @ref="form" @bind-IsValid="success">
+        <MudDatePicker @bind-Date="model.Date" Label="تاریخ" Required="true" />
+        <MudNumericField T="int" @bind-Value="model.DurationInMinutes" Label="مدت زمان (دقیقه)" Required="true" />
+        <MudTextField T="string" @bind-Value="model.Category" Label="دسته بندی" Required="true" />
+        <MudTextField T="string" @bind-Value="model.Description" Label="توضیحات" Required="true" />
+    </MudForm>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" @onclick="Submit">ثبت</MudButton>
+</MudPaper>
+
+<MudDataGrid T="TimeLogEntryDto" Items="@timeLogEntries">
+    <Columns>
+        <PropertyColumn Property="x => TimeService.ToPersianDate(x.Date)" Title="تاریخ" />
+        <PropertyColumn Property="x => x.DurationInMinutes" Title="مدت زمان (دقیقه)" />
+        <PropertyColumn Property="x => x.Category" Title="دسته بندی" />
+        <PropertyColumn Property="x => x.Description" Title="توضیحات" />
+    </Columns>
+</MudDataGrid>
+
+@code {
+    private LogTimeCommand model = new();
+    private MudForm form = new();
+    private bool success;
+    private List<TimeLogEntryDto> timeLogEntries = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTimeLogEntries();
+    }
+
+    private async Task LoadTimeLogEntries()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var client = HttpClientFactory.CreateClient("OrgManager.Api");
+        // This is a placeholder for the GetTimeLogEntriesQuery
+        // var response = await client.GetFromJsonAsync<List<TimeLogEntryDto>>("api/timelog");
+        // if (response != null)
+        // {
+        //     timeLogEntries = response;
+        // }
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (success)
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            model.UserId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            var client = HttpClientFactory.CreateClient("OrgManager.Api");
+            var response = await client.PostAsJsonAsync("api/timelog", model);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadTimeLogEntries();
+            }
+        }
+    }
+
+    public class TimeLogEntryDto
+    {
+        public Guid Id { get; set; }
+        public DateTime Date { get; set; }
+        public int DurationInMinutes { get; set; }
+        public string Category { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+}

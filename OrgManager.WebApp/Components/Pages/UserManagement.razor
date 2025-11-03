@@ -1,0 +1,68 @@
+@page "/usermanagement"
+@using System.Net.Http
+@using System.Net.Http.Json
+@using System.Net.Http.Headers
+@using Microsoft.AspNetCore.Components.Authorization
+@using OrgManager.Application.Features.Users.Queries.GetAllUsers
+@using OrgManager.Application.Features.Users.Commands.UpdateUser
+@attribute [Authorize(Roles = "Admin, SuperAdmin")]
+@inject IHttpClientFactory HttpClientFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IDialogService DialogService
+
+<MudText Typo="Typo.h4" GutterBottom="true">مدیریت کاربران</MudText>
+
+<MudDataGrid T="UserDto" Items="@users">
+    <Columns>
+        <PropertyColumn Property="x => x.Username" Title="نام کاربری" />
+        <PropertyColumn Property="x => x.Email" Title="ایمیل" />
+        <PropertyColumn Property="x => x.FullName" Title="نام کامل" />
+        <PropertyColumn Property="x => x.Department" Title="دپارتمان" />
+        <PropertyColumn Property="x => x.Role" Title="نقش" />
+        <TemplateColumn>
+            <CellTemplate>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenEditDialog(context.Item))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="@(() => DeleteUser(context.Item.Id))" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+
+@code {
+    private List<UserDto> users = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var client = HttpClientFactory.CreateClient("OrgManager.Api");
+        var response = await client.GetFromJsonAsync<List<UserDto>>("api/users");
+        if (response != null)
+        {
+            users = response;
+        }
+    }
+
+    private async Task OpenEditDialog(UserDto user)
+    {
+        var parameters = new DialogParameters { ["User"] = user };
+        var dialog = DialogService.Show<EditUserDialog>("Edit User", parameters);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            await LoadUsers();
+        }
+    }
+
+    private async Task DeleteUser(Guid id)
+    {
+        var client = HttpClientFactory.CreateClient("OrgManager.Api");
+        await client.DeleteAsync($"api/users/{id}");
+        await LoadUsers();
+    }
+}

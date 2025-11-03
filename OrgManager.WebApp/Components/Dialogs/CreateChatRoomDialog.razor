@@ -1,0 +1,66 @@
+@using System.Net.Http
+@using System.Net.Http.Json
+@using OrgManager.Application.Features.Chat.Commands.CreateChatRoom
+@using OrgManager.Application.Features.Users.Queries.GetAllUsers
+
+@inject IHttpClientFactory HttpClientFactory
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">ایجاد چت جدید</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="success">
+            <MudTextField T="string" @bind-Value="Name" Label="نام چت" Required="true" />
+            <MudSelect T="List<Guid>" @bind-Value="SelectedUserIds" Label="کاربران" MultiSelection="true">
+                @foreach (var user in allUsers)
+                {
+                    <MudSelectItem Value="@user.Id">@user.Username</MudSelectItem>
+                }
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">لغو</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">ایجاد</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    private MudForm form;
+    private bool success;
+    private string Name = string.Empty;
+    private List<Guid> SelectedUserIds = new();
+    private List<UserDto> allUsers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = HttpClientFactory.CreateClient("OrgManager.Api");
+        var response = await client.GetFromJsonAsync<List<UserDto>>("api/users");
+        if (response != null)
+        {
+            allUsers = response;
+        }
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (success)
+        {
+            var command = new CreateChatRoomCommand
+            {
+                Name = Name,
+                UserIds = SelectedUserIds
+            };
+
+            var client = HttpClientFactory.CreateClient("OrgManager.Api");
+            await client.PostAsJsonAsync("api/chat/rooms", command);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

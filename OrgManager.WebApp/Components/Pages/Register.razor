@@ -1,0 +1,46 @@
+@page "/register"
+@using System.Net.Http
+@using System.Net.Http.Json
+@using System.ComponentModel.DataAnnotations
+@using OrgManager.Application.Features.Users.Commands.CreateUser
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager NavigationManager
+
+<MudText Typo="Typo.h4" GutterBottom="true">ثبت نام کاربر جدید</MudText>
+
+<MudPaper Class="pa-4">
+    <MudForm @ref="form" @bind-IsValid="success">
+        <MudTextField T="string" @bind-Value="model.Username" Label="نام کاربری" Required="true" RequiredError="نام کاربری اجباری است." />
+        <MudTextField T="string" @bind-Value="model.Email" Label="ایمیل" Required="true" RequiredError="ایمیل اجباری است." Validation="@(new EmailAddressAttribute())" />
+        <MudTextField T="string" @bind-Value="model.Password" Label="رمز عبور" Required="true" RequiredError="رمز عبور اجباری است." InputType="InputType.Password" />
+        <MudTextField T="string" @bind-Value="model.FullName" Label="نام کامل" Required="true" RequiredError="نام کامل اجباری است." />
+        <MudTextField T="string" @bind-Value="model.Department" Label="دپارتمان" />
+        <MudSelect T="OrgManager.Core.Domain.Enums.Role" @bind-Value="model.Role" Label="نقش" Required="true">
+            <MudSelectItem Value="OrgManager.Core.Domain.Enums.Role.RegularUser">کاربر عادی</MudSelectItem>
+            <MudSelectItem Value="OrgManager.Core.Domain.Enums.Role.Admin">ادمین</MudSelectItem>
+            <MudSelectItem Value="OrgManager.Core.Domain.Enums.Role.SuperAdmin">سوپر ادمین</MudSelectItem>
+        </MudSelect>
+    </MudForm>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" @onclick="Submit">ثبت نام</MudButton>
+</MudPaper>
+
+@code {
+    private CreateUserCommand model = new CreateUserCommand();
+    private MudForm form = new();
+    private bool success;
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (success)
+        {
+            var client = HttpClientFactory.CreateClient("OrgManager.Api");
+            var response = await client.PostAsJsonAsync("api/users", model);
+
+            if (response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/login");
+            }
+        }
+    }
+}

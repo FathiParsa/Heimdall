@@ -1,0 +1,128 @@
+@page "/chat"
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager NavigationManager
+@inject IHttpClientFactory HttpClientFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IDialogService DialogService
+
+<MudLayout>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pt-4">
+            <MudGrid>
+                <MudItem xs="3">
+                    <MudPaper Class="pa-4" Style="height: 80vh; overflow-y: auto;">
+                        <MudText Typo="Typo.h6" GutterBottom="true">چت ها</MudText>
+                        <MudList Clickable="true" @bind-SelectedValue="selectedChatRoomId">
+                            @foreach (var room in chatRooms)
+                            {
+                                <MudListItem Value="room.Id">@room.Name</MudListItem>
+                            }
+                        </MudList>
+                        <MudButton OnClick="OpenCreateChatRoomDialog">ایجاد چت جدید</MudButton>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="9">
+                    <MudPaper Class="pa-4" Style="height: 80vh; display: flex; flex-direction: column;">
+                        <div style="flex-grow: 1; overflow-y: auto;">
+                            @foreach (var message in messages)
+                            {
+                                <MudText>@message</MudText>
+                            }
+                        </div>
+                        <InputFile OnChange="OnFileSelected" />
+                        <MudTextField @bind-Value="messageInput" Label="پیام خود را وارد کنید" Variant="Variant.Outlined"
+                                      OnAdornmentClick="Send" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Send" />
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private HubConnection? hubConnection;
+    private List<string> messages = new List<string>();
+    private string? messageInput;
+    private Guid selectedChatRoomId;
+    private List<ChatRoomDto> chatRooms = new();
+    private IBrowserFile? selectedFile;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+            .Build();
+
+        hubConnection.On<Guid, string>("ReceiveMessage", (userId, message) =>
+        {
+            var encodedMsg = $"{userId}: {message}";
+            messages.Add(encodedMsg);
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+        await LoadChatRooms();
+    }
+
+    private async Task LoadChatRooms()
+    {
+        var client = HttpClientFactory.CreateClient("OrgManager.Api");
+        var response = await client.GetFromJsonAsync<List<ChatRoomDto>>("api/chat/rooms");
+        if (response != null)
+        {
+            chatRooms = response;
+        }
+    }
+
+    private async Task Send()
+    {
+        if (hubConnection is not null && (!string.IsNullOrEmpty(messageInput) || selectedFile != null))
+        {
+            var client = HttpClientFactory.CreateClient("OrgManager.Api");
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(selectedChatRoomId.ToString()), "ChatRoomId");
+            content.Add(new StringContent(messageInput ?? string.Empty), "Message");
+            if (selectedFile != null)
+            {
+                var fileContent = new StreamContent(selectedFile.OpenReadStream(selectedFile.Size));
+                content.Add(fileContent, "Attachment", selectedFile.Name);
+            }
+
+            var response = await client.PostAsync("api/chat/messages", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                messageInput = string.Empty;
+                selectedFile = null;
+            }
+        }
+    }
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+    }
+
+    private async Task OpenCreateChatRoomDialog()
+    {
+        var dialog = DialogService.Show<CreateChatRoomDialog>("ایجاد چت جدید");
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            await LoadChatRooms();
+        }
+    }
+
+    public class ChatRoomDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+    }
+}

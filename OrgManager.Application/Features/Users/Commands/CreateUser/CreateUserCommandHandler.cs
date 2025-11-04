@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using OrgManager.Application.Contracts.Infrastructure;
 using OrgManager.Application.Contracts.Persistence;
+using OrgManager.Application.Exceptions;
 using OrgManager.Application.Features.Users.DTOs;
 using OrgManager.Core.Domain.Entities;
 
@@ -33,14 +34,14 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserD
         if (existingUser != null)
         {
             _logger.LogWarning("Username {Username} already exists.", request.Username);
-            throw new Exception($"Username '{request.Username}' already exists.");
+            throw new BadRequestException($"Username '{request.Username}' already exists.");
         }
 
         existingUser = await _userRepository.GetByEmailAsync(request.Email);
         if (existingUser != null)
         {
             _logger.LogWarning("Email {Email} already exists.", request.Email);
-            throw new Exception($"Email '{request.Email}' already exists.");
+            throw new BadRequestException($"Email '{request.Email}' already exists.");
         }
 
         var passwordHash = _passwordHasher.HashPassword(request.Password);

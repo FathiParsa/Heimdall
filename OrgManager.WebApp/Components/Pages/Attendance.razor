@@ -41,13 +41,12 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         var client = HttpClientFactory.CreateClient("OrgManager.Api");
-        // This is a placeholder for the GetAttendanceRecordsQuery
-        // var response = await client.GetFromJsonAsync<List<AttendanceRecordDto>>("api/attendance");
-        // if (response != null)
-        // {
-        //     attendanceRecords = response;
-        //     latestAttendanceRecord = attendanceRecords.LastOrDefault();
-        // }
+        var response = await client.GetFromJsonAsync<List<AttendanceRecordDto>>("api/attendance");
+        if (response != null)
+        {
+            attendanceRecords = response;
+            latestAttendanceRecord = attendanceRecords.LastOrDefault();
+        }
     }
 
     private async Task CheckIn()

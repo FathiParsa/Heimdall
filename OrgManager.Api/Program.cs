@@ -3,9 +3,16 @@ using Microsoft.IdentityModel.Tokens;
 using OrgManager.Api.Hubs;
 using OrgManager.Application;
 using OrgManager.Infrastructure;
+using Serilog;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+builder.Host.UseSerilog((context, config) =>
+{
+    config.ReadFrom.Configuration(context.Configuration);
+});
 
 // Add services to the container.
 builder.Services.AddApplicationServices();
@@ -29,7 +36,7 @@ builder.Services.AddAuthentication(options =>
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:Secret"])),
             ValidateIssuer = false,
-ValidateAudience = false
+            ValidateAudience = false
         };
     });
 
@@ -41,6 +48,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<OrgManager.Api.Middleware.ExceptionHandlerMiddleware>();
 
 app.UseHttpsRedirection();
 

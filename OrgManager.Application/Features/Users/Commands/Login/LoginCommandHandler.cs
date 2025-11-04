@@ -1,6 +1,7 @@
 using MediatR;
 using OrgManager.Application.Contracts.Infrastructure;
 using OrgManager.Application.Contracts.Persistence;
+using OrgManager.Application.Exceptions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,15 +25,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, string>
         var user = await _userRepository.GetByUsernameAsync(request.Username);
         if (user == null)
         {
-            // In a real application, you would throw a custom exception
-            // and handle it in a middleware to return a 401 Unauthorized.
-            throw new System.Exception("Invalid credentials");
+            throw new BadRequestException("Invalid credentials");
         }
 
         var isAuthenticated = await _authenticationService.AuthenticateAsync(user, request.Password);
         if (!isAuthenticated)
         {
-            throw new System.Exception("Invalid credentials");
+            throw new BadRequestException("Invalid credentials");
         }
 
         return _jwtTokenGenerator.GenerateToken(user);

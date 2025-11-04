@@ -1,5 +1,7 @@
 using MediatR;
 using OrgManager.Application.Contracts.Persistence;
+using OrgManager.Application.Exceptions;
+using OrgManager.Core.Domain.Entities;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,9 +21,7 @@ public class CheckOutCommandHandler : IRequestHandler<CheckOutCommand>
         var attendanceRecord = await _attendanceRepository.GetByIdAsync(request.AttendanceRecordId);
         if (attendanceRecord == null)
         {
-            // In a real application, you would throw a custom exception
-            // and handle it in a middleware.
-            throw new System.Exception("Attendance record not found");
+            throw new NotFoundException(nameof(AttendanceRecord), request.AttendanceRecordId);
         }
 
         attendanceRecord.CheckOut();

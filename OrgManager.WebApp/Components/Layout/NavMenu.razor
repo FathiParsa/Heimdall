@@ -1,15 +1,17 @@
 <MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All">صفحه اصلی</MudNavLink>
-    <MudNavLink Href="/register">ثبت نام</MudNavLink>
-    <MudNavLink Href="/login">ورود</MudNavLink>
-    <MudNavLink Href="/attendance">حضور و غیاب</MudNavLink>
-    <MudNavLink Href="/timelog">ثبت ساعات کاری</MudNavLink>
-    <MudNavLink Href="/chat">چت</MudNavLink>
-    <MudNavLink Href="/calendar">تقویم</MudNavLink>
-    <MudNavLink Href="/todolist">لیست کارها</MudNavLink>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">صفحه اصلی</MudNavLink>
+    <MudNavLink Href="/register" Icon="@Icons.Material.Filled.PersonAdd">ثبت نام</MudNavLink>
+    <MudNavLink Href="/login" Icon="@Icons.Material.Filled.Login">ورود</MudNavLink>
+    <MudNavLink Href="/attendance" Icon="@Icons.Material.Filled.CheckCircle">حضور و غیاب</MudNavLink>
+    <MudNavLink Href="/timelog" Icon="@Icons.Material.Filled.AccessTime">ثبت ساعات کاری</MudNavLink>
+    <MudNavLink Href="/chat" Icon="@Icons.Material.Filled.Chat">چت</MudNavLink>
+    <MudNavLink Href="/calendar" Icon="@Icons.Material.Filled.CalendarToday">تقویم</MudNavLink>
+    <MudNavLink Href="/todolist" Icon="@Icons.Material.Filled.Checklist">لیست کارها</MudNavLink>
     <AuthorizeView Roles="Admin, SuperAdmin">
-        <MudNavLink Href="/usermanagement">مدیریت کاربران</MudNavLink>
-        <MudNavLink Href="/dashboard">داشبورد</MudNavLink>
-        <MudNavLink Href="/reports">گزارشات</MudNavLink>
+        <MudNavGroup Title="مدیریت" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
+            <MudNavLink Href="/usermanagement" Icon="@Icons.Material.Filled.People">مدیریت کاربران</MudNavLink>
+            <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard">داشبورد</MudNavLink>
+            <MudNavLink Href="/reports" Icon="@Icons.Material.Filled.Assessment">گزارشات</MudNavLink>
+        </MudNavGroup>
     </AuthorizeView>
 </MudNavMenu>

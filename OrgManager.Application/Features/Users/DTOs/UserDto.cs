@@ -1,9 +1,8 @@
-using MediatR;
 using OrgManager.Core.Domain.Enums;
 
-namespace OrgManager.Application.Features.Users.Commands.UpdateUser;
+namespace OrgManager.Application.Features.Users.DTOs;
 
-public class UpdateUserCommand : IRequest
+public class UserDto
 {
     public Guid Id { get; set; }
     public string Username { get; set; } = string.Empty;

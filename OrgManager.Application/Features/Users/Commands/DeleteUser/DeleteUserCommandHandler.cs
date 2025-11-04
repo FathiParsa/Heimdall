@@ -1,28 +1,36 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
 using OrgManager.Application.Contracts.Persistence;
-using System.Threading;
-using System.Threading.Tasks;
+using OrgManager.Core.Domain.Entities;
 
 namespace OrgManager.Application.Features.Users.Commands.DeleteUser;
 
 public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand>
 {
     private readonly IUserRepository _userRepository;
+    private readonly ILogger<DeleteUserCommandHandler> _logger;
 
-    public DeleteUserCommandHandler(IUserRepository userRepository)
+    public DeleteUserCommandHandler(
+        IUserRepository userRepository,
+        ILogger<DeleteUserCommandHandler> logger)
     {
         _userRepository = userRepository;
+        _logger = logger;
     }
 
-    public async Task Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+    public async Task<Unit> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
     {
         var user = await _userRepository.GetByIdAsync(request.Id);
         if (user == null)
         {
-            // In a real application, you would throw a custom exception.
-            throw new System.Exception("User not found");
+            _logger.LogError("User with id {UserId} not found.", request.Id);
+            throw new Exception($"User with id '{request.Id}' not found.");
         }
 
-        await _userRepository.DeleteAsync(user);
+        user.Delete();
+
+        await _userRepository.UpdateAsync(user);
+
+        return Unit.Value;
     }
 }

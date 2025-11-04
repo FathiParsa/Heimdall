@@ -1,0 +1,51 @@
+@using System.Net.Http
+@using System.Net.Http.Json
+@using OrgManager.Application.Features.Users.Commands.CreateUser
+@using OrgManager.Core.Domain.Enums
+
+@inject IHttpClientFactory HttpClientFactory
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">ایجاد کاربر جدید</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="success">
+            <MudTextField T="string" @bind-Value="Model.Username" Label="نام کاربری" Required="true" />
+            <MudTextField T="string" @bind-Value="Model.Email" Label="ایمیل" Required="true" />
+            <MudTextField T="string" @bind-Value="Model.Password" Label="رمز عبور" Required="true" InputType="InputType.Password" />
+            <MudTextField T="string" @bind-Value="Model.FullName" Label="نام کامل" Required="true" />
+            <MudTextField T="string" @bind-Value="Model.Department" Label="دپارتمان" />
+            <MudSelect T="Role" @bind-Value="Model.Role" Label="نقش">
+                <MudSelectItem Value="Role.RegularUser">کاربر عادی</MudSelectItem>
+                <MudSelectItem Value="Role.Admin">ادمین</MudSelectItem>
+                <MudSelectItem Value="Role.SuperAdmin">سوپر ادمین</MudSelectItem>
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">لغو</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">ایجاد</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    private CreateUserCommand Model = new();
+    private MudForm form;
+    private bool success;
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (success)
+        {
+            var client = HttpClientFactory.CreateClient("OrgManager.Api");
+            await client.PostAsJsonAsync("api/users", Model);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

@@ -1,6 +1,7 @@
 using AutoMapper;
 using MediatR;
 using OrgManager.Application.Contracts.Persistence;
+using OrgManager.Application.Features.Users.DTOs;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;

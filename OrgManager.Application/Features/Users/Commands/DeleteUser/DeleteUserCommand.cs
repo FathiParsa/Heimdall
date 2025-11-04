@@ -1,5 +1,4 @@
 using MediatR;
-using System;
 
 namespace OrgManager.Application.Features.Users.Commands.DeleteUser;
 

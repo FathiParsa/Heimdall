@@ -31,4 +31,20 @@ public class User : BaseEntity
         user.AddDomainEvent(new UserCreatedEvent(user));
         return user;
     }
+
+    public void Update(string username, string email, string fullName, string? department, Role role)
+    {
+        Username = username;
+        Email = email;
+        FullName = fullName;
+        Department = department;
+        Role = role;
+        AddDomainEvent(new UserUpdatedEvent(this));
+    }
+
+    public void Delete()
+    {
+        IsDeleted = true;
+        AddDomainEvent(new UserDeletedEvent(this));
+    }
 }

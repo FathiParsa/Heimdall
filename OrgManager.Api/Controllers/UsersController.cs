@@ -6,6 +6,7 @@ using OrgManager.Application.Features.Users.Commands.DeleteUser;
 using OrgManager.Application.Features.Users.Commands.Login;
 using OrgManager.Application.Features.Users.Commands.UpdateUser;
 using OrgManager.Application.Features.Users.Queries.GetAllUsers;
+using OrgManager.Application.Features.Users.Queries.GetUserById;
 using System;
 using System.Threading.Tasks;
 
@@ -25,8 +26,8 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserCommand command)
     {
-        var userId = await _mediator.Send(command);
-        return CreatedAtAction(nameof(GetUserById), new { id = userId }, command);
+        var user = await _mediator.Send(command);
+        return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
     }
 
     [HttpPost("login")]
@@ -39,8 +40,8 @@ public class UsersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUserById(Guid id)
     {
-        // This is a placeholder for the GetUserByIdQuery
-        return Ok();
+        var user = await _mediator.Send(new GetUserByIdQuery { Id = id });
+        return Ok(user);
     }
 
     [HttpGet]

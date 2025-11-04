@@ -13,8 +13,8 @@ public class PasswordHasher : IPasswordHasher
         _passwordHasher = passwordHasher;
     }
 
-    public string HashPassword(User user, string password)
+    public string HashPassword(string password)
     {
-        return _passwordHasher.HashPassword(user, password);
+        return _passwordHasher.HashPassword(new User(), password);
     }
 }

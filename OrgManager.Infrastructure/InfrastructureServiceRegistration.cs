@@ -25,6 +25,9 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IChatRoomRepository, ChatRoomRepository>();
         services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
         services.AddScoped<ITodoListRepository, TodoListRepository>();
+        services.AddScoped<IAdminRepository, AdminRepository>();
+        services.AddScoped<ITimeLogEntryRepository, TimeLogEntryRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
         services.AddTransient<IPasswordHasher, PasswordHasher>();
         services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddTransient<IAuthenticationService, AuthenticationService>();

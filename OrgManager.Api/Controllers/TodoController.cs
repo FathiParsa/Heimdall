@@ -1,10 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OrgManager.Application.Features.Todo.Commands.CreateTodoList;
-using System;
-using System.Security.Claims;
-using System.Threading.Tasks;
+using OrgManager.Application.Features.Todo.Commands;
 
 namespace OrgManager.Api.Controllers;
 
@@ -21,11 +18,16 @@ public class TodoController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateTodoList([FromBody] CreateTodoListCommand command)
+    public async Task<IActionResult> Create(CreateTodoListCommand command)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-        command.UserId = userId;
-        var todoListId = await _mediator.Send(command);
-        return Ok(new { TodoListId = todoListId });
+        var id = await _mediator.Send(command);
+        return Ok(id);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Get()
+    {
+        var todoLists = await _mediator.Send(new GetMyTodoListsQuery());
+        return Ok(todoLists);
     }
 }

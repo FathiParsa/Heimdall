@@ -1,0 +1,22 @@
+<MudText Typo="Typo.h4" GutterBottom="true">داشبورد ادمین</MudText>
+<MudGrid>
+    <MudItem xs="12" sm="6" md="4">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h6">تعداد کاربران</MudText>
+            <MudText Typo="Typo.h4">@userCount</MudText>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private int userCount;
+
+    [Inject]
+    private IHttpClientFactory HttpClientFactory { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = HttpClientFactory.CreateClient("OrgManager.Api");
+        userCount = await client.GetFromJsonAsync<int>("api/dashboard/usercount");
+    }
+}

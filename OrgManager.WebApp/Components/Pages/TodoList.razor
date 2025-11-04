@@ -2,10 +2,11 @@
 @using System.Net.Http
 @using System.Net.Http.Json
 @using Microsoft.AspNetCore.Components.Authorization
-@using OrgManager.Application.Features.Todo.Commands.CreateTodoList
+@using OrgManager.Application.Features.Todo.Commands
 @using OrgManager.WebApp.Components.Shared
 @inject IHttpClientFactory HttpClientFactory
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IDialogService DialogService
 
 <MudText Typo="Typo.h4" GutterBottom="true">لیست کارها</MudText>
 
@@ -43,7 +44,12 @@
 
     private async Task OpenCreateTodoListDialog()
     {
-        // Open a dialog to create a new todo list
+        var dialog = DialogService.Show<CreateTodoListDialog>("ایجاد لیست جدید");
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            await LoadTodoLists();
+        }
     }
 
     private void OnItemDrop(TodoListDto list, (int oldIndex, int newIndex) args)
@@ -65,5 +71,7 @@
     {
         public Guid Id { get; set; }
         public string Title { get; set; } = string.Empty;
+        public string Description { get; set; }
+        public bool IsDone { get; set; }
     }
 }

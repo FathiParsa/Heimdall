@@ -1,36 +1,30 @@
 using Microsoft.EntityFrameworkCore;
-using OrgManager.Application.Contracts.Persistence;
 using OrgManager.Core.Domain.Entities;
+using OrgManager.Core.Domain.Repositories;
 using OrgManager.Infrastructure.Persistence;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace OrgManager.Infrastructure.Persistence.Repositories;
 
 public class TodoListRepository : ITodoListRepository
 {
-    private readonly OrgManagerDbContext _context;
+    private readonly OrgManagerDbContext _dbContext;
 
-    public TodoListRepository(OrgManagerDbContext context)
+    public TodoListRepository(OrgManagerDbContext dbContext)
     {
-        _context = context;
+        _dbContext = dbContext;
     }
 
     public async Task AddAsync(TodoList todoList)
     {
-        await _context.TodoLists.AddAsync(todoList);
-        await _context.SaveChangesAsync();
+        await _dbContext.TodoLists.AddAsync(todoList);
+        await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<TodoList?> GetByIdAsync(Guid id)
+    public async Task<IEnumerable<TodoList>> GetByUserIdAsync(Guid userId)
     {
-        return await _context.TodoLists.Include(t => t.Items).FirstOrDefaultAsync(t => t.Id == id);
-    }
-
-    public async Task<IReadOnlyList<TodoList>> GetByUserIdAsync(Guid userId)
-    {
-        return await _context.TodoLists.Where(t => t.UserId == userId).Include(t => t.Items).ToListAsync();
+        return await _dbContext.TodoLists
+            .Where(t => t.UserId == userId)
+            .Include(t => t.Items)
+            .ToListAsync();
     }
 }

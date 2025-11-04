@@ -8,6 +8,7 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.10" />
     <PackageReference Include="MudBlazor" Version="8.13.0" />
     <PackageReference Include="Radzen.Blazor" Version="8.1.8" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
   </ItemGroup>
 
   <PropertyGroup>

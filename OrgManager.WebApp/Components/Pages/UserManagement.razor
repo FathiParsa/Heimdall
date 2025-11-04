@@ -5,12 +5,15 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using OrgManager.Application.Features.Users.Queries.GetAllUsers
 @using OrgManager.Application.Features.Users.Commands.UpdateUser
+@using OrgManager.WebApp.Components.Dialogs
 @attribute [Authorize(Roles = "Admin, SuperAdmin")]
 @inject IHttpClientFactory HttpClientFactory
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IDialogService DialogService
 
 <MudText Typo="Typo.h4" GutterBottom="true">مدیریت کاربران</MudText>
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateDialog">ایجاد کاربر جدید</MudButton>
 
 <MudDataGrid T="UserDto" Items="@users">
     <Columns>
@@ -48,6 +51,16 @@
         }
     }
 
+    private async Task OpenCreateDialog()
+    {
+        var dialog = DialogService.Show<CreateUserDialog>("Create User");
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            await LoadUsers();
+        }
+    }
+
     private async Task OpenEditDialog(UserDto user)
     {
         var parameters = new DialogParameters { ["User"] = user };
@@ -61,8 +74,16 @@
 
     private async Task DeleteUser(Guid id)
     {
-        var client = HttpClientFactory.CreateClient("OrgManager.Api");
-        await client.DeleteAsync($"api/users/{id}");
-        await LoadUsers();
+        var result = await DialogService.ShowMessageBox(
+            "تایید حذف",
+            "آیا از حذف این کاربر اطمینان دارید؟",
+            yesText: "حذف", cancelText: "لغو");
+
+        if (result == true)
+        {
+            var client = HttpClientFactory.CreateClient("OrgManager.Api");
+            await client.DeleteAsync($"api/users/{id}");
+            await LoadUsers();
+        }
     }
 }

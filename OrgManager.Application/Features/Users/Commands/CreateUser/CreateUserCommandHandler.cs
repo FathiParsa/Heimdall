@@ -1,33 +1,60 @@
+using AutoMapper;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using OrgManager.Application.Contracts.Infrastructure;
 using OrgManager.Application.Contracts.Persistence;
+using OrgManager.Application.Features.Users.DTOs;
 using OrgManager.Core.Domain.Entities;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace OrgManager.Application.Features.Users.Commands.CreateUser;
 
-public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
+public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserDto>
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IMapper _mapper;
+    private readonly ILogger<CreateUserCommandHandler> _logger;
 
-    public CreateUserCommandHandler(IUserRepository userRepository, IPasswordHasher passwordHasher)
+    public CreateUserCommandHandler(
+        IUserRepository userRepository,
+        IPasswordHasher passwordHasher,
+        IMapper mapper,
+        ILogger<CreateUserCommandHandler> logger)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
+        _mapper = mapper;
+        _logger = logger;
     }
 
-    public async Task<Guid> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+    public async Task<UserDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
-        var user = User.Create(request.Username, request.Email, "", request.FullName, request.Department, request.Role);
-        var passwordHash = _passwordHasher.HashPassword(user, request.Password);
+        var existingUser = await _userRepository.GetByUsernameAsync(request.Username);
+        if (existingUser != null)
+        {
+            _logger.LogWarning("Username {Username} already exists.", request.Username);
+            throw new Exception($"Username '{request.Username}' already exists.");
+        }
 
-        var userWithPassword = User.Create(request.Username, request.Email, passwordHash, request.FullName, request.Department, request.Role);
+        existingUser = await _userRepository.GetByEmailAsync(request.Email);
+        if (existingUser != null)
+        {
+            _logger.LogWarning("Email {Email} already exists.", request.Email);
+            throw new Exception($"Email '{request.Email}' already exists.");
+        }
 
+        var passwordHash = _passwordHasher.HashPassword(request.Password);
 
-        await _userRepository.AddAsync(userWithPassword);
+        var user = User.Create(
+            request.Username,
+            request.Email,
+            passwordHash,
+            request.FullName,
+            request.Department,
+            request.Role);
 
-        return userWithPassword.Id;
+        await _userRepository.AddAsync(user);
+
+        return _mapper.Map<UserDto>(user);
     }
 }

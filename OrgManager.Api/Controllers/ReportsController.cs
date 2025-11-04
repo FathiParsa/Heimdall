@@ -24,4 +24,11 @@ public class ReportsController : ControllerBase
         var report = await _mediator.Send(query);
         return Ok(report);
     }
+
+    [HttpGet("timelog/export")]
+    public async Task<IActionResult> ExportTimeLogReport([FromQuery] ExportTimeLogReportQuery query)
+    {
+        var report = await _mediator.Send(query);
+        return File(report, "application/pdf", "timelog-report.pdf");
+    }
 }

@@ -83,24 +83,20 @@
 
     private async Task Send()
     {
-        if (hubConnection is not null && (!string.IsNullOrEmpty(messageInput) || selectedFile != null))
+        if (hubConnection is not null && !string.IsNullOrEmpty(messageInput))
         {
-            var client = HttpClientFactory.CreateClient("OrgManager.Api");
-            using var content = new MultipartFormDataContent();
-            content.Add(new StringContent(selectedChatRoomId.ToString()), "ChatRoomId");
-            content.Add(new StringContent(messageInput ?? string.Empty), "Message");
-            if (selectedFile != null)
-            {
-                var fileContent = new StreamContent(selectedFile.OpenReadStream(selectedFile.Size));
-                content.Add(fileContent, "Attachment", selectedFile.Name);
-            }
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var userId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            var response = await client.PostAsync("api/chat/messages", content);
+            var command = new { ChatRoomId = selectedChatRoomId, Message = messageInput, UserId = userId };
+
+            var client = HttpClientFactory.CreateClient("OrgManager.Api");
+            var response = await client.PostAsJsonAsync("api/chat/send", command);
 
             if (response.IsSuccessStatusCode)
             {
                 messageInput = string.Empty;
-                selectedFile = null;
             }
         }
     }

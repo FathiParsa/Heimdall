@@ -1,14 +1,14 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OrgManager.Application.Features.Dashboard.Queries.GetUserCount;
+using OrgManager.Application.Features.Dashboard.Queries;
 using System.Threading.Tasks;
 
 namespace OrgManager.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin, SuperAdmin")]
+[Authorize(Roles = "SuperAdmin")]
 public class DashboardController : ControllerBase
 {
     private readonly IMediator _mediator;

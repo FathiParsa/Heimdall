@@ -7,12 +7,14 @@
 @attribute [Authorize(Roles = "Admin, SuperAdmin")]
 @inject IHttpClientFactory HttpClientFactory
 @inject ITimeService TimeService
+@inject NavigationManager NavigationManager
 
 <MudText Typo="Typo.h4" GutterBottom="true">گزارشات</MudText>
 
 <MudPaper Class="pa-4">
     <MudDateRangePicker @bind-DateRange="dateRange" Label="بازه زمانی" />
     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GenerateReport">تولید گزارش</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ExportReport">خروجی PDF</MudButton>
 </MudPaper>
 
 <MudDataGrid T="TimeLogReportDto" Items="@report">
@@ -38,5 +40,11 @@
         {
             report = response;
         }
+    }
+
+    private void ExportReport()
+    {
+        var url = $"api/reports/timelog/export?startDate={dateRange.Start:yyyy-MM-dd}&endDate={dateRange.End:yyyy-MM-dd}&format=pdf";
+        NavigationManager.NavigateTo(url, forceLoad: true);
     }
 }
